@@ -8,7 +8,12 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import axios, { AxiosError } from "axios";
 import { tNotifications } from "../atoms/TNotification";
 import TButton from "../atoms/TButton";
-import { useRouter } from 'next/navigation'
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
+import { ILoginResponse } from "@/app/dto/login.dto";
+import { useAtom } from "jotai";
+import { pageNameAtom } from "@/store/page-name.atom";
+import { userAtom } from "@/store/user.atom";
 
 type ISignInFormProps = HTMLAttributes<HTMLDivElement> & {};
 
@@ -24,11 +29,13 @@ const defaultValues: IDefaultValues = {
 
 const careerSchema = object().shape({
   email: string().required().email().label("Email"),
-  password: string().trim().required().max(255).label("Password"),
+  password: string().trim().required().min(6).max(40).label("Password"),
 });
 
 const SignInForm: FC<ISignInFormProps> = (props) => {
-  const router = useRouter()
+  const router = useRouter();
+  const [_pagename, setPageName] = useAtom(pageNameAtom);
+  const [_user, setUser] = useAtom(userAtom);
 
   const { className, ...other } = props;
   const { handleSubmit, reset, control } = useForm({
@@ -45,7 +52,7 @@ const SignInForm: FC<ISignInFormProps> = (props) => {
       const endpoint = process.env.NEXT_PUBLIC_BASE_API_URL ?? "";
 
       const { email, password } = formData;
-      await axios.post(
+      const { data } = await axios.post<ILoginResponse>(
         `${endpoint}/login`,
         {
           email,
@@ -58,15 +65,22 @@ const SignInForm: FC<ISignInFormProps> = (props) => {
         }
       );
 
+      setUser(data.data);
+
+      const { authorization } = data.data;
+
+      Cookies.set("authToken", authorization);
+
       reset();
       tNotifications.success({
         title: "Success",
         message: "Form submitted successfully!",
       });
-      router.push('/')
+      setPageName("User management");
+      router.push("/users");
     } catch (error) {
       console.log(error);
-      
+
       tNotifications.error({
         title: "Error",
         message:
@@ -110,7 +124,13 @@ const SignInForm: FC<ISignInFormProps> = (props) => {
           type="password"
           className="w-full"
         />
-        <TButton type="submit" className={clsx("mt-4", isSubmitting && "bg-primary-700 cursor-not-allowed")}>
+        <TButton
+          type="submit"
+          className={clsx(
+            "mt-4",
+            isSubmitting && "bg-primary-700 cursor-not-allowed"
+          )}
+        >
           Submit
         </TButton>
       </form>
