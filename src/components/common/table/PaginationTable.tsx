@@ -1,4 +1,10 @@
-import React, { ChangeEvent, FC, HTMLAttributes, useState } from "react";
+import React, {
+  ChangeEvent,
+  Dispatch,
+  FC,
+  HTMLAttributes,
+  useState,
+} from "react";
 import {
   Table,
   TableBody,
@@ -10,23 +16,41 @@ import {
   TablePagination,
   Tooltip,
 } from "@mui/material";
-import { Edit2, Eye, Trash2 } from "react-feather";
+import { ArrowUp, Edit2, Eye, Trash2 } from "react-feather";
 import clsx from "clsx";
 
 type IPaginationTableProps = HTMLAttributes<HTMLDivElement> & {
   columns: string[];
+  rows: string[][];
+  count: number;
+  page: number;
+  rowsPerPage: number;
+  setPage: Dispatch<React.SetStateAction<number>>;
+  setRowsPerPage: Dispatch<React.SetStateAction<number>>;
+  loading: boolean;
+  order: "desc" | "asc";
+  setOrder: Dispatch<React.SetStateAction<"desc" | "asc">>;
+  sort: "" | "email" | "name";
+  setSort: Dispatch<React.SetStateAction<"" | "email" | "name">>;
 };
 
-const sampleData = Array.from({ length: 50 }, (_, index) => ({
-  id: index + 1,
-  name: `Item ${index + 1}`,
-  description: `This is the description for item ${index + 1}`,
-}));
-
 const PaginationTable: FC<IPaginationTableProps> = (props) => {
-  const { columns, className, ...other } = props;
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const {
+    columns,
+    rows,
+    count,
+    page,
+    setPage,
+    rowsPerPage,
+    setRowsPerPage,
+    loading,
+    order,
+    setOrder,
+    sort,
+    setSort,
+    className,
+    ...other
+  } = props;
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
 
   const handleSelectRow = (id: number) => {
@@ -43,7 +67,7 @@ const PaginationTable: FC<IPaginationTableProps> = (props) => {
 
   const handleSelectAll = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const allIds = currentData.map((row) => row.id);
+      const allIds = currentData.map((_row, idx) => idx);
       setSelectedRows(new Set(allIds));
     } else {
       setSelectedRows(new Set());
@@ -51,15 +75,15 @@ const PaginationTable: FC<IPaginationTableProps> = (props) => {
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
-    setPage(newPage);
+    setPage(newPage + 1);
   };
 
   const handleChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    setPage(1);
   };
 
-  const currentData = sampleData.slice(
+  const currentData = rows.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
@@ -70,7 +94,12 @@ const PaginationTable: FC<IPaginationTableProps> = (props) => {
       {...other}
     >
       <TableContainer component={Paper} className="shadow-lg !rounded-t-lg">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto relative">
+          {loading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-[2px] z-50">
+              <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          )}
           <Table className="min-w-full">
             <TableHead className="bg-primary-800">
               <TableRow>
@@ -82,7 +111,7 @@ const PaginationTable: FC<IPaginationTableProps> = (props) => {
                     type="checkbox"
                     checked={
                       currentData.length > 0 &&
-                      currentData.every((row) => selectedRows.has(row.id))
+                      currentData.every((_row, idx) => selectedRows.has(idx))
                     }
                     onChange={handleSelectAll}
                     className="w-5 h-5 border border-gray-300 rounded-lg bg-transparent focus:outline-none"
@@ -91,10 +120,45 @@ const PaginationTable: FC<IPaginationTableProps> = (props) => {
                 {columns.map((column) => (
                   <TableCell
                     key={column}
-                    className="!text-base !font-bold !text-white"
+                    className={clsx(
+                      "!text-base !font-bold !text-white",
+                      (column === "Name" || column === "Email") &&
+                        "cursor-pointer"
+                    )}
                     style={{ minWidth: "100px" }}
+                    onClick={() => {
+                      if (column === "Name") {
+                        setOrder((pre) =>
+                          pre === "asc"
+                            ? sort === "email" || sort === ""
+                              ? "asc"
+                              : "desc"
+                            : "asc"
+                        );
+                        sort !== "name" && setSort("name");
+                      }
+                      if (column === "Email") {
+                        setOrder((pre) =>
+                          pre === "asc"
+                            ? sort === "name" || sort === ""
+                              ? "asc"
+                              : "desc"
+                            : "asc"
+                        );
+                        sort !== "email" && setSort("email");
+                      }
+                    }}
                   >
-                    {column}
+                    {column}&nbsp;&nbsp;
+                    {((column === "Name" && sort === "name") ||
+                      (column === "Email" && sort === "email")) && (
+                      <ArrowUp
+                        className={clsx(
+                          "inline rotate-0",
+                          order === "desc" && "rotate-180"
+                        )}
+                      />
+                    )}
                   </TableCell>
                 ))}
                 <TableCell
@@ -106,43 +170,54 @@ const PaginationTable: FC<IPaginationTableProps> = (props) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {currentData.map((row) => (
-                <TableRow key={row.id} className="hover:bg-primary-100/50">
+              {rows.length !== 0 ? (
+                rows.map((row, idx) => (
+                  <TableRow key={idx} className="hover:bg-primary-100/50">
+                    <TableCell
+                      className="pl-4 sticky left-0 z-10"
+                      style={{ minWidth: "60px" }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedRows.has(idx)}
+                        onChange={() => handleSelectRow(idx)}
+                        className="w-5 h-5"
+                      />
+                    </TableCell>
+                    {row.map((cell) => (
+                      <TableCell key={cell}>{cell}</TableCell>
+                    ))}
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Tooltip title="View" placement="top">
+                          <button className="p-2 rounded-full hover:bg-gray-200 transition">
+                            <Eye size={16} color="#4caf50" />
+                          </button>
+                        </Tooltip>
+                        <Tooltip title="Edit" placement="top">
+                          <button className="p-2 rounded-full hover:bg-gray-200 transition">
+                            <Edit2 size={16} color="#ff9800" />
+                          </button>
+                        </Tooltip>
+                        <Tooltip title="Delete" placement="top">
+                          <button className="p-2 rounded-full hover:bg-gray-200 transition">
+                            <Trash2 size={16} color="#f44336" />
+                          </button>
+                        </Tooltip>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
                   <TableCell
-                    className="pl-4 sticky left-0 z-10"
-                    style={{ minWidth: "60px" }}
+                    colSpan={columns.length + 2}
+                    className="!text-center py-4 text-gray-500"
                   >
-                    <input
-                      type="checkbox"
-                      checked={selectedRows.has(row.id)}
-                      onChange={() => handleSelectRow(row.id)}
-                      className="w-5 h-5"
-                    />
-                  </TableCell>
-                  <TableCell>{row.id}</TableCell>
-                  <TableCell>{row.name}</TableCell>
-                  <TableCell>{row.description}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Tooltip title="View" placement="top">
-                        <button className="p-2 rounded-full hover:bg-gray-200 transition">
-                          <Eye size={16} color="#4caf50" />
-                        </button>
-                      </Tooltip>
-                      <Tooltip title="Edit" placement="top">
-                        <button className="p-2 rounded-full hover:bg-gray-200 transition">
-                          <Edit2 size={16} color="#ff9800" />
-                        </button>
-                      </Tooltip>
-                      <Tooltip title="Delete" placement="top">
-                        <button className="p-2 rounded-full hover:bg-gray-200 transition">
-                          <Trash2 size={16} color="#f44336" />
-                        </button>
-                      </Tooltip>
-                    </div>
+                    No data found
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </div>
@@ -150,8 +225,8 @@ const PaginationTable: FC<IPaginationTableProps> = (props) => {
       <div className="w-full flex justify-center">
         <TablePagination
           component="div"
-          count={sampleData.length}
-          page={page}
+          count={count}
+          page={page - 1}
           onPageChange={handleChangePage}
           rowsPerPage={rowsPerPage}
           rowsPerPageOptions={[10, 20, 30, 50, 100]}

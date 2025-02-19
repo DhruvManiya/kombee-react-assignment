@@ -1,3 +1,4 @@
+import { IUser } from "@/app/dto/user.dto";
 import { atom } from "jotai";
 
-export const userManagement = atom(null);
+export const userManagement = atom<IUser[]>([]);

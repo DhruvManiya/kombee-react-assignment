@@ -3,7 +3,7 @@ import clsx from "clsx";
 import React, { FC } from "react";
 
 type TButtonProps = ButtonProps & {
-    type: "button" | "submit" | "reset"
+    type?: "button" | "submit" | "reset"
 };
 
 const TButton: FC<TButtonProps> = (props) => {

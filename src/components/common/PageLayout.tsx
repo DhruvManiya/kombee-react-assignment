@@ -24,9 +24,9 @@ const PageLayout: FC<IPageLayoutProps> = (props) => {
 
   return (
     <main className="w-full flex bg-[rgb(213,231,236)]">
-      <SideBar className="!w-80 fixed left-0" />
+      <SideBar className="!w-80 fixed left-0 z-[99]" />
       <div className="w-[calc(100%-320px)] mt-16 ml-80">
-        <Navbar className="fixed top-0 h-16 w-[calc(100%-320px)] right-0" />
+        <Navbar className="fixed top-0 h-16 w-[calc(100%-320px)] right-0 z-[99]" />
         <section className="p-4 min-h-screen">{children}</section>
       </div>
     </main>

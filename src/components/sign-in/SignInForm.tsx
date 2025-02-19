@@ -68,6 +68,8 @@ const SignInForm: FC<ISignInFormProps> = (props) => {
         role,
       } = data.data;
 
+      console.log(data.data);
+
       Cookies.set("authToken", authorization);
 
       // In real life scenario we don't need to store user like this. Whenever we need user we can the get user api with proper authToken
@@ -88,14 +90,12 @@ const SignInForm: FC<ISignInFormProps> = (props) => {
       });
       router.push("/users");
     } catch (error) {
-      console.log(error);
-
       tNotifications.error({
         title: "Error",
         message:
           (error as AxiosError).status === 427
             ? "Envalid email or password!"
-            : (error as AxiosError).message,
+            : (error as AxiosError).config?.data.message,
       });
     } finally {
       setIsSubmitting(false);
