@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# User Management Frontend Task
+Yo can see live site over [here](https://user-management-kombee-task.netlify.app).
 
-## Getting Started
+## Site Installation
 
-First, run the development server:
+Run Installation comands and start servers
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+  npm install
+  npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## env setup
+You will need env setup
+So follow the following command
+```bash
+  cp .env.example .env.local
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## About task
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+#### Points Which are not completed due to time limitation
+Note: below mention points are not completed due to the time limete
 
-## Learn More
+- Add and edit user functionality 
+- Responsive design and 404 page design
+- for delete functionality currently I've not use api 
 
-To learn more about Next.js, take a look at the following resources:
+#### Points Which are not completed due to improper APIs
+Note: below mention points are not completed due to improper guidance of the api in postman collection
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Filter for role
+  - I found the api for list of roles which are available through out the site but what I need to pass from role object to get filter work. That I could not able to find. Additionally I have tried it to work with role name and id of the role which two properties were present in the response of list role api alse were null. but none of them was the right one. and there is no documentation that what I need to pass for filter the role out.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+####  Except above mention two points all the functionalities are done

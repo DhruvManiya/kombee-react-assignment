@@ -1,6 +1,6 @@
 "use client";
 import { usePathname } from "next/navigation";
-import React, { FC, HTMLAttributes, ReactNode } from "react";
+import React, { FC, ReactNode } from "react";
 import { SideBar } from "./SideBar";
 import Navbar from "./Navbar";
 import { pageMap } from "@/constants/page-name.constant";

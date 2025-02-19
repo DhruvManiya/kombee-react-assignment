@@ -7,7 +7,7 @@ import { useAtom } from "jotai";
 import { userManagement } from "@/store/user-management.atom";
 import axios, { AxiosError } from "axios";
 import { IUserPaginationRes } from "../dto/user.dto";
-import { Input, Modal, Popover, Select } from "@mantine/core";
+import { Input, Popover, Select } from "@mantine/core";
 import clsx from "clsx";
 import TButton from "@/components/atoms/TButton";
 import { Download, Filter, Trash } from "react-feather";
@@ -47,10 +47,6 @@ const UserPage: FC = () => {
   const [count, setCount] = useState(10);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
-
-  if (!Cookies.get("authToken") && !Cookies.get("user")) {
-    return notFound();
-  }
 
   const authToken = Cookies.get("authToken");
   const userCookie = Cookies.get("user");
@@ -99,7 +95,7 @@ const UserPage: FC = () => {
     }
 
     return () => debouncedFetchData.cancel();
-  }, [page, rowsPerPage, sort, order, search, authToken]);
+  }, [page, rowsPerPage, sort, order, search]);
 
   const userRows = useMemo(() => {
     return users.map((user) => {
@@ -113,9 +109,12 @@ const UserPage: FC = () => {
       });
       return row;
     });
-  }, [users, columns]);
+  }, [users]);
+  
+  if (!Cookies.get("authToken") && !Cookies.get("user")) {
+    return notFound();
+  }
 
-  // In real life sceanario we use delete query here tp delete users
   const handleDelete = (emails: string[]) => {
     setUsers((prevUsers) =>
       prevUsers.filter((user) => !emails.includes(user.email))

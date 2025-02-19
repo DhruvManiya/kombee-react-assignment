@@ -1,6 +1,5 @@
 import SideBar from "@/components/sign-in/SideBar";
 import SignInForm from "@/components/sign-in/SignInForm";
-import { pageNameAtom } from "@/store/page-name.atom";
 import clsx from "clsx";
 import React, { FC, HTMLAttributes } from "react";
 
