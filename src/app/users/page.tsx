@@ -1,16 +1,14 @@
-"use client";
-import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+'use client';
+import React, { FC, useEffect, useMemo, useState } from "react";
 import Cookies from "js-cookie";
 import { notFound } from "next/navigation";
 import PaginationTable from "@/components/common/table/PaginationTable";
 import { useAtom } from "jotai";
 import { userManagement } from "@/store/user-management.atom";
 import axios, { AxiosError } from "axios";
-import { IUser, IUserPaginationRes } from "../dto/user.dto";
-import TInput from "@/components/atoms/TInput";
+import { IUserPaginationRes } from "../dto/user.dto";
 import { Input, Popover, Select } from "@mantine/core";
 import clsx from "clsx";
-import { useDisclosure } from "@mantine/hooks";
 import TButton from "@/components/atoms/TButton";
 import { Filter } from "react-feather";
 import { debounce } from "lodash";
@@ -28,19 +26,11 @@ const UserPage: FC = () => {
   const [count, setCount] = useState(10);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // In real life scenario, We use refresh Token strategy to keep our token alive. or if we don't, we need to send a falsy request to the server to know if token is still alive. and bases on that we rediarect user to not found!
   if (!Cookies.get("authToken") && !Cookies.get("user")) {
     return notFound();
   }
 
   const authToken = Cookies.get("authToken");
-
-  const debouncedSearch = useCallback(
-    debounce((value: string) => {
-      setSearch(value);
-    }, 700),
-    []
-  );
 
   const fetchData = async () => {
     try {
@@ -60,7 +50,6 @@ const UserPage: FC = () => {
           },
         }
       );
-
       setUsers(data.data);
       setCount(data.total);
     } catch (error) {
@@ -76,9 +65,17 @@ const UserPage: FC = () => {
     }
   };
 
+  const debouncedFetchData = debounce(fetchData, 300);
+
   useEffect(() => {
-    fetchData();
-  }, [page, rowsPerPage, search, sort, order]);
+    if (search) {
+      debouncedFetchData();
+    } else {
+      fetchData();
+    }
+
+    return () => debouncedFetchData.cancel();
+  }, [page, rowsPerPage, sort, order, search, authToken]);
 
   const userRows = useMemo(() => {
     return users.map(({ name, email, dob, gender_text, role, status_text }) => [
@@ -110,7 +107,7 @@ const UserPage: FC = () => {
           name="Search"
           placeholder="Search"
           value={search}
-          onChange={(e) => debouncedSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
         />
         <div className="flex gap-4">
           <Popover width={300} position="bottom-end" withArrow shadow="md">

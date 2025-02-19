@@ -88,6 +88,32 @@ const PaginationTable: FC<IPaginationTableProps> = (props) => {
     page * rowsPerPage + rowsPerPage
   );
 
+  const handleColumnClick = (column: string) => {
+    const newSortOrder = (prevOrder: "desc" | "asc") =>
+      prevOrder === "asc" ? "desc" : "asc";
+
+    if (column === "Name" && sort !== "name") {
+      setSort("name");
+      setOrder("asc");
+    } else if (column === "Email" && sort !== "email") {
+      setSort("email");
+      setOrder("asc");
+    } else {
+      setOrder((prevOrder) => newSortOrder(prevOrder));
+    }
+  };
+
+  const renderArrow = (column: string) => {
+    return (
+      ((column === "Name" && sort === "name") ||
+        (column === "Email" && sort === "email")) && (
+        <ArrowUp
+          className={clsx("inline rotate-0", order === "desc" && "rotate-180")}
+        />
+      )
+    );
+  };
+
   return (
     <div
       className={clsx("flex flex-col items-center p-4", className)}
@@ -126,39 +152,10 @@ const PaginationTable: FC<IPaginationTableProps> = (props) => {
                         "cursor-pointer"
                     )}
                     style={{ minWidth: "100px" }}
-                    onClick={() => {
-                      if (column === "Name") {
-                        setOrder((pre) =>
-                          pre === "asc"
-                            ? sort === "email" || sort === ""
-                              ? "asc"
-                              : "desc"
-                            : "asc"
-                        );
-                        sort !== "name" && setSort("name");
-                      }
-                      if (column === "Email") {
-                        setOrder((pre) =>
-                          pre === "asc"
-                            ? sort === "name" || sort === ""
-                              ? "asc"
-                              : "desc"
-                            : "asc"
-                        );
-                        sort !== "email" && setSort("email");
-                      }
-                    }}
+                    onClick={() => handleColumnClick(column)}
                   >
                     {column}&nbsp;&nbsp;
-                    {((column === "Name" && sort === "name") ||
-                      (column === "Email" && sort === "email")) && (
-                      <ArrowUp
-                        className={clsx(
-                          "inline rotate-0",
-                          order === "desc" && "rotate-180"
-                        )}
-                      />
-                    )}
+                    {renderArrow(column)}
                   </TableCell>
                 ))}
                 <TableCell
