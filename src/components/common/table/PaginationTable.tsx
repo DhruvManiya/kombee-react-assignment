@@ -20,6 +20,11 @@ import {
 import { ArrowUp, Edit2, Eye, Trash2 } from "react-feather";
 import clsx from "clsx";
 import { ITableColumn, ITableUser } from "@/app/users/page";
+import { Modal } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { useAtom } from "jotai";
+import { userManagement } from "@/store/user-management.atom";
+import { IUser } from "@/app/dto/user.dto";
 
 type IPaginationTableProps = HTMLAttributes<HTMLDivElement> & {
   columns: ITableColumn[];
@@ -62,6 +67,10 @@ const PaginationTable: FC<IPaginationTableProps> = ({
   className,
   ...other
 }) => {
+  const [users] = useAtom(userManagement);
+  const [editUser, setEditUser] = useState<IUser>();
+  const [opened, { open, close }] = useDisclosure(false);
+
   const handleSelectRow = (email: string) => {
     setSelectedRows((prevSelected) => {
       if (prevSelected.includes(email)) {
@@ -190,7 +199,15 @@ const PaginationTable: FC<IPaginationTableProps> = ({
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Tooltip title="View" placement="top">
-                          <button className="p-2 rounded-full hover:bg-gray-200 transition">
+                          <button
+                            onClick={() => {
+                              setEditUser(
+                                users.find((user) => user.email === row.email)
+                              );
+                              open();
+                            }}
+                            className="p-2 rounded-full hover:bg-gray-200 transition"
+                          >
                             <Eye size={16} color="#4caf50" />
                           </button>
                         </Tooltip>
@@ -239,6 +256,40 @@ const PaginationTable: FC<IPaginationTableProps> = ({
           className="bg-gray-50 p-2 w-full rounded-b-md shadow-inner"
         />
       </div>
+
+      <Modal opened={opened} onClose={close} title="About User" size="xl" classNames={{header: "!bg-primary-800 !text-white", body: "!p-6"}}>
+        {/* Here is too much duplication we can refactor it */}
+        <div className="!w-full h-full max-h-[600px] flex flex-col gap-4">
+          <div className="w-full px-4 flex">
+            <span className="w-1/2 block text-secondary-800">Name:</span>
+            <span className="w-1/2 block">{editUser?.name}</span>
+          </div>
+          <div className="w-full px-4 flex">
+            <span className="w-1/2 block text-secondary-800">Email:</span>
+            <span className="w-1/2 block">{editUser?.email}</span>
+          </div>
+          <div className="w-full px-4 flex">
+            <span className="w-1/2 block text-secondary-800">Role</span>
+            <span className="w-1/2 block">{editUser?.role.name}</span>
+          </div>
+          <div className="w-full px-4 flex">
+            <span className="w-1/2 block text-secondary-800">D.O.B.:</span>
+            <span className="w-1/2 block">{editUser?.dob}</span>
+          </div>
+          <div className="w-full px-4 flex">
+            <span className="w-1/2 block text-secondary-800">Profile:</span>
+            <span className="w-1/2 block">Comming soon</span>
+          </div>
+          <div className="w-full px-4 flex">
+            <span className="w-1/2 block text-secondary-800">Gender:</span>
+            <span className="w-1/2 block">{editUser?.gender_text}</span>
+          </div>
+          <div className="w-full px-4 flex">
+            <span className="w-1/2 block text-secondary-800">Status:</span>
+            <span className="w-1/2 block">{editUser?.status_text}</span>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
