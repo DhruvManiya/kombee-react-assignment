@@ -1,15 +1,11 @@
 import { FC, HTMLAttributes, useState } from "react";
-import {
-  IconUsers
-} from "@tabler/icons-react";
+import { IconUsers } from "@tabler/icons-react";
 import Image from "next/image";
 import clsx from "clsx";
 import signInLogo from "@/assets/logo.png";
 import Link from "next/link";
 
-const data = [
-  { link: "/users", label: "Users", icon: IconUsers },
-];
+const data = [{ link: "/users", label: "Users", icon: IconUsers }];
 
 type ISideBarProps = HTMLAttributes<HTMLElement> & {};
 

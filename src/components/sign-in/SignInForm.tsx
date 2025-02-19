@@ -11,9 +11,6 @@ import TButton from "../atoms/TButton";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { ILoginResponse } from "@/app/dto/login.dto";
-import { useAtom } from "jotai";
-import { pageNameAtom } from "@/store/page-name.atom";
-import { userAtom } from "@/store/user.atom";
 
 type ISignInFormProps = HTMLAttributes<HTMLDivElement> & {};
 
@@ -34,8 +31,6 @@ const careerSchema = object().shape({
 
 const SignInForm: FC<ISignInFormProps> = (props) => {
   const router = useRouter();
-  const [_pagename, setPageName] = useAtom(pageNameAtom);
-  const [_user, setUser] = useAtom(userAtom);
 
   const { className, ...other } = props;
   const { handleSubmit, reset, control } = useForm({
@@ -65,18 +60,32 @@ const SignInForm: FC<ISignInFormProps> = (props) => {
         }
       );
 
-      setUser(data.data);
-
-      const { authorization } = data.data;
+      const {
+        authorization,
+        name,
+        profile,
+        email: userEmail,
+        role,
+      } = data.data;
 
       Cookies.set("authToken", authorization);
+
+      // In real life scenario we don't need to store user like this. Whenever we need user we can the get user api with proper authToken
+      Cookies.set(
+        "user",
+        JSON.stringify({
+          name,
+          profile,
+          email: userEmail,
+          role: role.name,
+        })
+      );
 
       reset();
       tNotifications.success({
         title: "Success",
         message: "Form submitted successfully!",
       });
-      setPageName("User management");
       router.push("/users");
     } catch (error) {
       console.log(error);
