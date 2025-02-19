@@ -1,5 +1,5 @@
 # User Management Frontend Task
-Yo can see live site over [here](https://user-management-kombee-task.netlify.app).
+Yo can see live site over [here](https://user-management-kombee-task.netlify.app/sign-in).
 
 ## Site Installation
 
