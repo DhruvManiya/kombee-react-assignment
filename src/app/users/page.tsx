@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import React, { FC, useEffect, useMemo, useState } from "react";
 import Cookies from "js-cookie";
 import { notFound } from "next/navigation";
@@ -10,12 +10,33 @@ import { IUserPaginationRes } from "../dto/user.dto";
 import { Input, Popover, Select } from "@mantine/core";
 import clsx from "clsx";
 import TButton from "@/components/atoms/TButton";
-import { Filter } from "react-feather";
+import { Delete, Download, Filter, Trash } from "react-feather";
 import { debounce } from "lodash";
 import { tNotifications } from "@/components/atoms/TNotification";
+import { CSVLink } from "react-csv";
 
-const columns = ["Name", "Email", "Role", "DOB", "Gender", "Status"];
+export type ITableColumn = {
+  label: string;
+  key: keyof ITableUser; // `keyof IUser` ensures that the `key` corresponds to a property in IUser
+};
 
+export type ITableUser = {
+  name: string;
+  email: string;
+  role: string;
+  dob: string;
+  gender_text: string;
+  status_text: string;
+};
+
+const columns: ITableColumn[] = [
+  { label: "Name", key: "name" },
+  { label: "Email", key: "email" },
+  { label: "Role", key: "role" },
+  { label: "DOB", key: "dob" },
+  { label: "Gender", key: "gender_text" },
+  { label: "Status", key: "status_text" },
+];
 const UserPage: FC = () => {
   const [users, setUsers] = useAtom(userManagement);
   const [page, setPage] = useState(1);
@@ -25,12 +46,15 @@ const UserPage: FC = () => {
   const [sort, setSort] = useState<"name" | "email" | "">("");
   const [count, setCount] = useState(10);
   const [loading, setLoading] = useState<boolean>(false);
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   if (!Cookies.get("authToken") && !Cookies.get("user")) {
     return notFound();
   }
 
   const authToken = Cookies.get("authToken");
+  const userCookie = Cookies.get("user");
+  const user = userCookie ? JSON.parse(userCookie) : null;
 
   const fetchData = async () => {
     try {
@@ -78,15 +102,27 @@ const UserPage: FC = () => {
   }, [page, rowsPerPage, sort, order, search, authToken]);
 
   const userRows = useMemo(() => {
-    return users.map(({ name, email, dob, gender_text, role, status_text }) => [
-      name,
-      email,
-      role.name,
-      dob,
-      gender_text,
-      status_text,
-    ]);
-  }, [users]);
+    return users.map((user) => {
+      const row: { [key: string]: string } = {};
+      columns.forEach((column) => {
+        if (column.key === "role") {
+          row[column.key] = user[column.key].name;
+        } else {
+          row[column.key] = user[column.key];
+        }
+      });
+      return row;
+    });
+  }, [users, columns]);
+
+  // In real life sceanario we use delete query here tp delete users
+  const handleDelete = (emails: string[]) => {
+    setUsers((prevUsers) =>
+      prevUsers.filter((user) => !emails.includes(user.email))
+    );
+
+    setSelectedRows([]);
+  };
 
   return (
     <div className="h-full bg-white rounded-2xl">
@@ -131,6 +167,21 @@ const UserPage: FC = () => {
               </p>
             </Popover.Dropdown>
           </Popover>
+          <CSVLink
+            data={userRows}
+            headers={columns}
+            filename="user_data.csv"
+            className="btn btn-primary"
+          >
+            <TButton className="!p-2">
+              <Download size={20} />
+            </TButton>
+          </CSVLink>
+          <div onClick={() => handleDelete(selectedRows)}>
+            <TButton className="!p-2 !bg-red-600">
+              <Trash size={20} />
+            </TButton>
+          </div>
         </div>
       </div>
       <PaginationTable
@@ -146,6 +197,10 @@ const UserPage: FC = () => {
         setSort={setSort}
         order={order}
         setOrder={setOrder}
+        selectedRows={selectedRows}
+        setSelectedRows={setSelectedRows}
+        userEmail={user.email}
+        onDeleteRow={(id) => handleDelete([id])}
       />
     </div>
   );
